@@ -3,7 +3,6 @@
 
 
 namespace Microsoft.IIS.Administration {
-    using AspNetCore.Antiforgery.Internal;
     using AspNetCore.Builder;
     using AspNetCore.Hosting;
     using AspNetCore.Http;
@@ -19,6 +18,7 @@ namespace Microsoft.IIS.Administration {
     using Extensions.DependencyInjection.Extensions;
     using Files;
     using Logging;
+    using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
     using Microsoft.IIS.Administration.Core.Utils;
     using Microsoft.IIS.Administration.Security.Authorization;
     using Security;
@@ -29,10 +29,10 @@ namespace Microsoft.IIS.Administration {
 
 
     public class Startup : BaseModule {
-        private IHostingEnvironment _hostingEnv;
+        private IWebHostEnvironment _hostingEnv;
         private IConfiguration _config;
 
-        public Startup(IHostingEnvironment env, IConfiguration config) {
+        public Startup(IWebHostEnvironment env, IConfiguration config) {
             _hostingEnv = env ?? throw new ArgumentNullException(nameof(env));
             _config = config ?? throw new ArgumentNullException(nameof(config));
 
@@ -61,7 +61,8 @@ namespace Microsoft.IIS.Administration {
 
             //
             // Load plugins
-            ModuleConfig modConfig = new ModuleConfig(_hostingEnv.GetConfigPath("modules.json"));
+            //.GetConfigPath("modules.json")
+            ModuleConfig modConfig = new ModuleConfig(Path.Combine(_hostingEnv.ContentRootPath, "config\\modules.json"));
             ModuleLoader loader = new ModuleLoader(_hostingEnv);
             LoadPlugins(loader, modConfig.Modules);
             AdminHost.Instance.ConfigureModules(services);
@@ -78,30 +79,61 @@ namespace Microsoft.IIS.Administration {
             // Authorization
             services.AddAuthorizationPolicy();
 
-            services.AddConfigurationWriter(_hostingEnv);
+            services.AddConfigurationWriter((IHostingEnvironment)_hostingEnv);
 
             //
             // Antiforgery
-            services.TryAddSingleton<IAntiforgeryTokenStore, AntiForgeryTokenStore>();
-            services.AddAntiforgery(o => {
-                o.RequireSsl = true;
-                o.CookieName = o.FormFieldName = HeaderNames.XSRF_TOKEN;
+            services.AddAntiforgery(options =>
+            {
+                options.FormFieldName = HeaderNames.XSRF_TOKEN;
+                options.HeaderName = "X-CSRF-TOKEN-HEADERNAME";
+                options.SuppressXFrameOptionsHeader = false;
             });
+
+            //services.TryAddSingleton<IAntiforgeryTokenStore, AntiForgeryTokenStore>();
+            //services.AddAntiforgery(o => {
+            //    o.RequireSsl = true;
+            //    o.CookieName = o.FormFieldName = HeaderNames.XSRF_TOKEN;
+            //});
 
             //
             // Caching
-            services.AddMemoryCache();
-            
+            //services.AddMemoryCache();
+
             //
             // MVC
-            IMvcBuilder builder = services.AddMvc(o => {
 
-                // Replace default json output formatter
-                o.OutputFormatters.RemoveType<AspNetCore.Mvc.Formatters.JsonOutputFormatter>();
+           
+            IMvcBuilder builder = services.AddRazorPages();
 
-                var settings = JsonSerializerSettingsProvider.CreateSerializerSettings();
-                o.OutputFormatters.Add(new JsonOutputFormatter(settings, System.Buffers.ArrayPool<char>.Shared));
+            //IMvcBuilder builder = services.AddMvc(o =>
+            //{
 
+            //    // Replace default json output formatter
+            //    o.OutputFormatters.RemoveType<AspNetCore.Mvc.Formatters.NewtonsoftJsonOutputFormatter>();
+
+            //    //var settings = JsonSerializerSettingsProvider.CreateSerializerSettings();
+            //    //var mvcoption = new MvcOptions();
+            //    //o.OutputFormatters.Add(new JsonOutputFormatter(settings, System.Buffers.ArrayPool<char>.Shared, mvcoption));
+
+            //    // TODO
+            //    // Workaround filter to fix Object Results returned from controllers
+            //    // Remove when https://github.com/aspnet/Mvc/issues/4960 is resolved
+            //    o.Filters.Add(typeof(Fix4960ActionFilter));
+
+            //    o.Filters.Add(typeof(ActionFoundFilter));
+
+            //    o.Filters.Add(typeof(ResourceInfoFilter));
+
+            //    RemoveFilter<UnsupportedContentTypeFilter>(o);
+            //});
+
+            foreach (var asm in loader.GetAllLoadedAssemblies()) {
+                builder.AddApplicationPart(asm);
+            }
+
+            builder.AddControllersAsServices().AddMvcOptions(o =>
+            {
                 // TODO
                 // Workaround filter to fix Object Results returned from controllers
                 // Remove when https://github.com/aspnet/Mvc/issues/4960 is resolved
@@ -112,14 +144,10 @@ namespace Microsoft.IIS.Administration {
                 o.Filters.Add(typeof(ResourceInfoFilter));
 
                 RemoveFilter<UnsupportedContentTypeFilter>(o);
-            });
-
-            foreach (var asm in loader.GetAllLoadedAssemblies()) {
-                builder.AddApplicationPart(asm);
+                o.EnableEndpointRouting = false;
             }
-
-            builder.AddControllersAsServices();
-            builder.AddWebApiConventions();
+            );
+            //builder.AddWebApiConventions();
         }
 
         // Configure is called after ConfigureServices is called.
@@ -179,18 +207,20 @@ namespace Microsoft.IIS.Administration {
             //
             // Allow HEAD requests as GET
             app.UseMiddleware<HeadTransform>();
-
+            app.UseRouting();
 
             //
             // Add MVC
             // 
-            app.UseMvc(routes => {
+            app.UseMvc(routes =>
+            {
                 AdminHost.Instance.StartModules(routes, app);
                 InitiateFeatures(routes);
 
                 // Ensure routes meant to be extended do not block child routes
                 SortRoutes(routes);
             });
+
 
             //
             // Register for application shutdown
@@ -202,7 +232,7 @@ namespace Microsoft.IIS.Administration {
         private static void InitiateFeatures(IRouteBuilder routes) {
             //
             // Ping
-            routes.MapWebApiRoute("Microsoft.IIS.Administration.Ping",
+            routes.MapWebApiRoute(new Guid("Microsoft.IIS.Administration.Ping"),
                                   Globals.PING_PATH,
                                   new { controller = "ping" });
 
@@ -229,6 +259,7 @@ namespace Microsoft.IIS.Administration {
         {
             foreach (string assemblyName in assemblyNames) {
                 try {
+                    Console.WriteLine(assemblyName);
                     loader.LoadModule(assemblyName);
                 }
                 catch (FileNotFoundException e) {

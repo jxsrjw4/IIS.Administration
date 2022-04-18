@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration
     using AspNetCore.Routing;
     using Core;
     using Extensions.DependencyInjection;
+    using Microsoft.IIS.Administration.Core.Http;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -27,6 +28,7 @@ namespace Microsoft.IIS.Administration
             _modules = new List<IModule>();
             _applicationBuilder = null;
             _routeBuilder = null;
+
         }
 
         public static AdminHost Instance
@@ -152,7 +154,7 @@ namespace Microsoft.IIS.Administration
 
                 if (resourceId != null && controller != null)
                 {
-                    _routeBuilder.MapWebApiRoute(route.Name + "-edge",
+                    _routeBuilder.MapWebApiRoute(new Guid(route.Name + "-edge"),
                                 route.RouteTemplate + "/{edge}",
                                 new {
                                     controller = controller,

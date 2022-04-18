@@ -7,21 +7,17 @@
     <Description>Microsoft.IIS.Administration.WebServer.WorkerProcesses Class Library</Description>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Microsoft.IIS.Administration.WebServer.WorkerProcesses</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.WebServer.WorkerProcesses</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.IIS.Administration.WebServer.AppPools\Microsoft.IIS.Administration.WebServer.AppPools.csproj" />
+    <PackageReference Include="Microsoft.Web.Administration" Version="11.1.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
+    <ProjectReference Include="..\Microsoft.IIS.Administration.WebServer.AppPools\Microsoft.IIS.Administration.WebServer.AppPools.csproj" />
   </ItemGroup>
 
 </Project>

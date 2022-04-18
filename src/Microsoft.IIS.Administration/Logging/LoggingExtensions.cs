@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.Logging
     using Extensions.Logging;
     using Extensions.DependencyInjection;
     using Serilog;
+    using Serilog.Sinks.File;
     using System.IO;
     using AspNetCore.Hosting;
     using Serilog.Events;
@@ -20,7 +21,7 @@ namespace Microsoft.IIS.Administration.Logging
             IServiceProvider sp = services.BuildServiceProvider();
 
             var configuration = sp.GetRequiredService<IConfiguration>();
-            var env = sp.GetRequiredService<IHostingEnvironment>();
+            var env = sp.GetRequiredService<IWebHostEnvironment>();
 
             var loggingConfiguration = new LoggingConfiguration(configuration);
             var logsRoot = loggingConfiguration.LogsRoot;
@@ -40,8 +41,16 @@ namespace Microsoft.IIS.Administration.Logging
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel
                 .Is(LoggingConfiguration.ToLogEventLevel(minLevel))
-                .WriteTo
-                .RollingFile(Path.Combine(logsRoot, loggingConfiguration.FileName), retainedFileCountLimit: loggingConfiguration.MaxFiles)
+                .WriteTo.Logger(lc =>
+                 {
+                     lc.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Debug)
+                     .WriteTo.File(Path.Combine(logsRoot, loggingConfiguration.FileName),
+                      outputTemplate: "{Timestamp:HH:mm:ss} [{Level}] {SourceContext} {NewLine}{Message}{NewLine}{Exception}",
+                         rollingInterval: RollingInterval.Day,
+                         //auditingConfiguration.MaxFiles
+                         rollOnFileSizeLimit: true);
+                 })
+                //.RollingFile(Path.Combine(logsRoot, loggingConfiguration.FileName), retainedFileCountLimit: loggingConfiguration.MaxFiles)
                 .CreateLogger();
             
             //
@@ -57,7 +66,7 @@ namespace Microsoft.IIS.Administration.Logging
             IServiceProvider sp = services.BuildServiceProvider();
 
             var configuration = sp.GetRequiredService<IConfiguration>();
-            var env = sp.GetRequiredService<IHostingEnvironment>();
+            var env = sp.GetRequiredService<IWebHostEnvironment>();
 
             var auditingConfiguration = new AuditingConfiguration(configuration);
             var auditRoot = auditingConfiguration.AuditingRoot;
@@ -77,8 +86,15 @@ namespace Microsoft.IIS.Administration.Logging
             AuditAttribute.Logger = new LoggerConfiguration()
                 .MinimumLevel
                 .Is(LoggingConfiguration.ToLogEventLevel(minLevel))
-                .WriteTo
-                .RollingFile(Path.Combine(auditRoot, auditingConfiguration.FileName), retainedFileCountLimit: auditingConfiguration.MaxFiles)
+                .WriteTo.Logger(lc =>
+                {
+                    lc.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Debug)
+                    .WriteTo.File(Path.Combine(auditRoot, auditingConfiguration.FileName),
+                     outputTemplate: "{Timestamp:HH:mm:ss} [{Level}] {SourceContext} {NewLine}{Message}{NewLine}{Exception}",
+                        rollingInterval: RollingInterval.Day,
+                        //auditingConfiguration.MaxFiles
+                        rollOnFileSizeLimit: true);
+                })
                 .CreateLogger();
 
             services.AddSingleton<INonsensitiveAuditingFields>(new NonsensitiveAuditingFields());

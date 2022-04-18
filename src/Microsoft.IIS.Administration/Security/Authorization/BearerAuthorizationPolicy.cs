@@ -6,13 +6,11 @@ namespace Microsoft.IIS.Administration.Security.Authorization {
     using System;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Headers = Net.Http.Headers;
     using System.Threading.Tasks;
     using Microsoft.IIS.Administration.Core.Http;
     using Newtonsoft.Json;
-
-
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
 
     sealed class BearerAuthorizationPolicy : IAssertAuthorizationRequirement, IAuthorizationPolicy {
         public BearerAuthorizationPolicy() {

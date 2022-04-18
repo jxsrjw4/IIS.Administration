@@ -4,8 +4,8 @@
 
 namespace Microsoft.IIS.Administration.Core
 {
-    using AspNetCore.Http;
-    using AspNetCore.Mvc.Filters;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc.Filters;
     using Newtonsoft.Json.Linq;
     using Security;
     using Serilog;

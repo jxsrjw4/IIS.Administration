@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
+using Microsoft.Extensions.Caching.Memory;
 namespace Microsoft.IIS.Administration.Monitoring
 {
-    using Microsoft.Extensions.Caching.Memory;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -29,9 +29,9 @@ namespace Microsoft.IIS.Administration.Monitoring
             // Cache stores one counter monitor per performance counter category
             // When performance counters are requested they are added to the monitor for their category and then cached under category + instance
             //     for quick retrieval and lifetime management
-            _cache = new MemoryCache(new MemoryCacheOptions() {
-                ExpirationScanFrequency = CacheExpiration,
-                CompactOnMemoryPressure = false
+            _cache = new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions() {
+                ExpirationScanFrequency = CacheExpiration
+                //,CompactOnMemoryPressure = true
             });
 
             _counterFinder = finder;

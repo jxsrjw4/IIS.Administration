@@ -23,7 +23,7 @@ namespace Microsoft.IIS.Administration.Core.Http {
 
             //
             // Add Route
-            return builder.MapWebApiRoute(resourceId.ToString(), template, (object) def);
+            return builder.MapWebApiRoute(resourceId, template, (object) def);
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Microsoft.IIS.Administration.Logging
             }
         }
 
-        public string GetDefaultLogRoot(IHostingEnvironment env)
+        public string GetDefaultLogRoot(IWebHostEnvironment env)
         {
             return Path.GetFullPath(Path.Combine(env.ContentRootPath, "../../logs"));
         }

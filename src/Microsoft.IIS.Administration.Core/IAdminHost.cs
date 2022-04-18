@@ -15,5 +15,7 @@ namespace Microsoft.IIS.Administration.Core
         IApplicationBuilder ApplicationBuilder { get; }
         IModule GetModuleByAssemblyName(string assemblyName);
         IRouteBuilder RouteBuilder { get; }
+
+        //IEndpointRouteBuilder EndpointRouteBuilder { get; }
     }
 }

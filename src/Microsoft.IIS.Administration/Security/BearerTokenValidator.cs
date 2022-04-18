@@ -8,10 +8,8 @@ namespace Microsoft.IIS.Administration.Security {
     using System.Security.Claims;
     using Core.Http;
     using Core.Security;
-    using AspNetCore.Authentication.JwtBearer;
-    using IdentityModel.Tokens;
-
-
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.IdentityModel.Tokens;
 
     public class BearerTokenValidator : ISecurityTokenValidator {
         private IApiKeyProvider _keyProvider;

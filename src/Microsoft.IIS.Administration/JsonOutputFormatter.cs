@@ -8,10 +8,11 @@ namespace Microsoft.IIS.Administration
     using System;
     using Newtonsoft.Json;
     using System.Buffers;
+    using Microsoft.AspNetCore.Mvc;
 
-    class JsonOutputFormatter : AspNetCore.Mvc.Formatters.JsonOutputFormatter
+    class JsonOutputFormatter : NewtonsoftJsonOutputFormatter
     {
-        public JsonOutputFormatter(JsonSerializerSettings serializerSettings, ArrayPool<char> charPool) : base(serializerSettings, charPool)
+        public JsonOutputFormatter(JsonSerializerSettings serializerSettings, ArrayPool<char> charPool, MvcOptions mvcOptions) : base(serializerSettings, charPool, mvcOptions)
         {
         }
 

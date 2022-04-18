@@ -6,7 +6,7 @@
     <Description>Microsoft.IIS.Administration.Files.Core Class Library</Description>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Microsoft.IIS.Administration.Files.Core</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.Files.Core</PackageId>
   </PropertyGroup>
@@ -16,6 +16,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.24" />
   </ItemGroup>
 
   <ItemGroup>

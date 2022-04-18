@@ -6,7 +6,6 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     using System;
     using System.Net;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using AspNetCore.Antiforgery;
     using AspNetCore.Authorization;
     using AspNetCore.Cors;
@@ -15,6 +14,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     using Core.Security;
     using Core.Utils;
     using Extensions.Options;
+    using Microsoft.IIS.Administration.Core.Http;
 
 
     /// <summary>
@@ -25,7 +25,8 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     /// </summary>
     [Authorize(Policy = "ApiKeys")]
     [DisableCors]
-    public class AccessTokensController : ApiController {
+    public class AccessTokensController : ApiBaseController
+    {
         IApiKeyProvider _keyProvider;
 
         public AccessTokensController(IApiKeyProvider keyProvider) {

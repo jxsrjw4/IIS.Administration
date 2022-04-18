@@ -4,7 +4,6 @@
 
 namespace Microsoft.IIS.Administration.Core.Http {
     using System;
-    using System.Web.Http;
     using AspNetCore.Authorization;
     using AspNetCore.Http;
     using AspNetCore.Mvc;
@@ -12,7 +11,15 @@ namespace Microsoft.IIS.Administration.Core.Http {
 
 
     [Authorize]
-    public abstract class ApiEdgeController : ApiController {
+    public abstract class ApiEdgeController : ControllerBase
+    {
+
+        public HttpContext Context
+        {
+            get {
+                return HttpContext;
+            }
+        }
         [HttpGet]
         public object Edge(string edge, string id = "") {
             edge = edge.ToLower();
@@ -21,7 +28,7 @@ namespace Microsoft.IIS.Administration.Core.Http {
                 return NotFound();
             }
 
-            Guid guid = (Guid) ActionContext.RouteData.Values["resourceId"];
+            Guid guid = (Guid) RouteData.Values["resourceId"];
 
             object obj = new {
                 id = !string.IsNullOrEmpty(id) ? id : GetId()
@@ -36,7 +43,7 @@ namespace Microsoft.IIS.Administration.Core.Http {
                 redirectUrl = ((dynamic)link.ToExpando()).href;
             }
 
-            if (redirectUrl == null || Context.Request.Path.StartsWithSegments(redirectUrl)) {
+            if (redirectUrl == null || HttpContext.Request.Path.StartsWithSegments(redirectUrl)) {
                 return NotFound();
             }
 
@@ -46,11 +53,12 @@ namespace Microsoft.IIS.Administration.Core.Http {
 
             // Make absolute Uri
             if (!uri.IsAbsoluteUri) {
-                var baseUrl = new Uri(Request.RequestUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped), UriKind.Absolute);
-                uri = new Uri(baseUrl, redirectUrl);
+                //var baseUrl = new Uri(HttpContext.Request.RequestUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped), UriKind.Absolute);
+                var baseUrl = new Uri(HttpContext.Request.PathBase.ToString());
+               uri = new Uri(baseUrl, redirectUrl);
             }
 
-            var qs = QueryString.FromUriComponent(uri) + Context.Request.QueryString;
+            var qs = QueryString.FromUriComponent(uri) + HttpContext.Request.QueryString;
 
             string location = uri.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.Unescaped) + qs.ToUriComponent();
 

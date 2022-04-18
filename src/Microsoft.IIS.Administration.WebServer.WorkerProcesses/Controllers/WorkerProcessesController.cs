@@ -3,7 +3,6 @@
 
 
 namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
-    using AspNetCore.Mvc;
     using System.Linq;
     using System.Net;
     using Core.Http;
@@ -12,6 +11,7 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
     using AppPools;
     using Core.Utils;
     using Core;
+    using Microsoft.AspNetCore.Mvc;
 
     [RequireWebServer]
     public class WorkerProcessesController : ApiBaseController {

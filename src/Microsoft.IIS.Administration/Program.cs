@@ -5,10 +5,10 @@
 namespace Microsoft.IIS.Administration {
     using AspNetCore.Builder;
     using AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Hosting.WindowsServices;
     using Microsoft.AspNetCore.Server.HttpSys;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.EventLog;
     using Serilog;
@@ -33,56 +33,39 @@ namespace Microsoft.IIS.Administration {
 
                 //
                 // Host
-                using (var host = new WebHostBuilder()
-                    .UseContentRoot(configHelper.RootPath)
-                    .ConfigureLogging((hostingContext, logging) => {
-                        logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
 
-                    //
-                    // Console log is not available in running as a Service
-                    if (!runAsAService)
-                        {
-                            logging.AddConsole();
-                        }
 
-                        logging.AddDebug();
-                        logging.AddEventLog(new EventLogSettings()
-                        {
-                            SourceName = EventSourceName
-                        });
-                    })
-                    .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
-                    .UseConfiguration(config)
-                    .ConfigureServices(s => s.AddSingleton(config)) // Configuration Service
-                    .UseStartup<Startup>()
-                    .UseHttpSys(o => {
-                    //
-                    // Kernel mode Windows Authentication
-                    o.Authentication.Schemes = AuthenticationSchemes.Negotiate | AuthenticationSchemes.NTLM;
+                Host.CreateDefaultBuilder(args)
+                   .UseContentRoot(configHelper.RootPath)
+                   .ConfigureLogging((hostingContext, logging) =>
+                   {
+                       logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
 
-                    //
-                    // Need anonymous to allow CORS preflight requests
-                    // app.UseWindowsAuthentication ensures (if needed) the request is authenticated to proceed
-                    o.Authentication.AllowAnonymous = true;
-                    })
+                       //
+                       // Console log is not available in running as a Service
+                       if (!runAsAService)
+                       {
+                           logging.AddConsole();
+                       }
+
+                       logging.AddDebug();
+                       logging.AddEventLog(new EventLogSettings()
+                       {
+                           SourceName = EventSourceName
+                       });
+                   })
+                   .ConfigureWebHostDefaults(webBuilder =>
+                   {
+                       webBuilder.UseStartup<Startup>()
+                       .UseConfiguration(config)
+                       .ConfigureServices(s => s.AddSingleton(config));
+                   })
+                    //.UseConfiguration(config)
+                    //.ConfigureServices(s => s.AddSingleton(config)) // Configuration Service
+                    //.UseStartup<Startup>()
                     .Build()
-                    .UseHttps())
-                {
+                    .Run();
 
-                    if (runAsAService)
-                    {
-                        //
-                        // Run as a Service
-                        Log.Information($"Running as service: {serviceName}");
-                        host.RunAsService();
-                    }
-                    else
-                    {
-                        //
-                        // Run interactive
-                        host.Run();
-                    }
-                }
             }
             catch (Exception ex)
             {

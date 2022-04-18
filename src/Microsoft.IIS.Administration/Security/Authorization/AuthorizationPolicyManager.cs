@@ -4,10 +4,10 @@
 
 namespace Microsoft.IIS.Administration.Security.Authorization {
     using System;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.Extensions.Configuration;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Server.HttpSys;
+    using Microsoft.Extensions.Configuration;
 
     sealed class AuthorizationPolicyManager {
         private const string WINDOWS_USER = "WindowsUser";
